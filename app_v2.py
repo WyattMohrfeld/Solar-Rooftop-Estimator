@@ -13,6 +13,8 @@ PROPERTY_AVERAGES = {
     "Commercial building": 5000,
 }
 
+USABLE_ROOF_FACTOR = 0.75  # Only ~75% of roof is usable for solar
+
 def get_coordinates(address):
     url = "https://nominatim.openstreetmap.org/search"
     params = {"q": address, "format": "json", "limit": 1}
@@ -64,6 +66,7 @@ def get_building_area(lat, lon):
             return abs(area) / 2
 
         area_deg = shoelace(coords)
+        area_m2 = area_deg * (111_320 ** 2) * abs(0.7)
         # Convert from degrees² to meters² (approximate at mid-latitudes)
         area_m2 = area_deg * (111_320 ** 2) * abs(0.7)  # ~cos(45°) correction
         area_sqft = area_m2 * 10.7639
@@ -96,6 +99,21 @@ if address:
                 roof_area = PROPERTY_AVERAGES[property_type]
                 st.info(f"Using average roof area for {property_type}: **{roof_area:,} sq ft**")
 
+            # --- Apply usable roof factor ---
+            usable_area = roof_area * USABLE_ROOF_FACTOR
+
+            # --- Solar Estimate ---
+            watts_per_sqft = 18
+            system_kw = (usable_area * watts_per_sqft) / 1000
+            low_cost = system_kw * 2500
+            high_cost = system_kw * 4000
+
+            st.divider()
+            st.subheader("☀️ Solar Estimate")
+            st.write(f"Usable roof area: **{usable_area:,.0f} sq ft** *(75% of total, accounting for vents, shading & pitch)*")
+            st.write(f"Estimated system size: **{system_kw:.2f} kW**")
+            st.write(f"Estimated installed cost: **${low_cost:,.0f} – ${high_cost:,.0f}**")
+            st.caption("Cost estimate based on $2.50–$4.00 per watt, which is the current U.S. industry average.")
             # --- Solar Estimate ---
             if roof_area:
                 watts_per_sqft = 18
