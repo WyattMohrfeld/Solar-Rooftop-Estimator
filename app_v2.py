@@ -40,12 +40,14 @@ def get_building_area(lat, lon):
         data = response.json()
         elements = data.get("elements", [])
 
+        # Find nodes and ways
         nodes = {e["id"]: (e["lat"], e["lon"]) for e in elements if e["type"] == "node"}
         ways = [e for e in elements if e["type"] == "way" and "tags" in e]
 
         if not ways:
             return None
 
+        # Use the first building way found
         way = ways[0]
         node_ids = way.get("nodes", [])
         coords = [nodes[n] for n in node_ids if n in nodes]
@@ -53,6 +55,7 @@ def get_building_area(lat, lon):
         if len(coords) < 3:
             return None
 
+        # Calculate polygon area using Shoelace formula (in degrees, then convert to sq ft)
         def shoelace(pts):
             n = len(pts)
             area = 0
@@ -64,6 +67,8 @@ def get_building_area(lat, lon):
 
         area_deg = shoelace(coords)
         area_m2 = area_deg * (111_320 ** 2) * abs(0.7)
+        # Convert from degrees² to meters² (approximate at mid-latitudes)
+        area_m2 = area_deg * (111_320 ** 2) * abs(0.7)  # ~cos(45°) correction
         area_sqft = area_m2 * 10.7639
 
         return round(area_sqft)
@@ -109,3 +114,14 @@ if address:
             st.write(f"Estimated system size: **{system_kw:.2f} kW**")
             st.write(f"Estimated installed cost: **${low_cost:,.0f} – ${high_cost:,.0f}**")
             st.caption("Cost estimate based on $2.50–$4.00 per watt, which is the current U.S. industry average.")
+            # --- Solar Estimate ---
+            if roof_area:
+                watts_per_sqft = 18
+                system_kw = (roof_area * watts_per_sqft) / 1000
+                low_cost = system_kw * 2500
+                high_cost = system_kw * 4000
+
+                st.divider()
+                st.subheader("☀️ Solar Estimate")
+                st.write(f"Estimated system size: **{system_kw:.2f} kW**")
+                st.write(f"Estimated installed cost: **${low_cost:,.0f} – ${high_cost:,.0f}**")
