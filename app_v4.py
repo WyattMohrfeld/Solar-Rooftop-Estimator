@@ -1,6 +1,7 @@
 import streamlit as st
 import requests
 import os
+import plotly.graph_objects as go
 from dotenv import load_dotenv
 
 load_dotenv()
@@ -195,7 +196,7 @@ def get_solar_data(lat, lon):
         return None
 
 def render_savings_section(system_kw, state_code, mohrfeld_cost, monthly_bill_override=None):
-    """Render the savings + payback section given system size and state."""
+    """Render the savings + payback + production section given system size and state."""
     state_name, rate, sun_hrs = STATE_DATA.get(state_code, ("California", 0.255, 5.9))
 
     annual_kwh = system_kw * sun_hrs * 365 * 0.97
@@ -205,8 +206,12 @@ def render_savings_section(system_kw, state_code, mohrfeld_cost, monthly_bill_ov
     payback_yrs = net_cost / annual_savings if annual_savings > 0 else 99
     lifetime_savings = (annual_savings * 25) - net_cost
 
+    # Avg US home uses ~10,500 kWh/yr; estimate bill coverage
+    avg_home_kwh = 10_500
+    bill_coverage_pct = min(round(annual_kwh / avg_home_kwh * 100), 100)
+
     st.markdown("---")
-    st.markdown('<div class="section-header">💡 Savings & Payback</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">💡 Energy Production & Savings</div>', unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="stat-line" style="margin-bottom:0.75rem;">
@@ -215,8 +220,28 @@ def render_savings_section(system_kw, state_code, mohrfeld_cost, monthly_bill_ov
     </div>
     """, unsafe_allow_html=True)
 
+    # ── Energy production stat cards ──────────────────────────────────────────
     col1, col2 = st.columns(2)
     with col1:
+        st.markdown(f"""
+        <div class="savings-card">
+            <div class="savings-card-label">Annual Energy Production</div>
+            <div class="savings-card-val">{annual_kwh:,.0f} kWh</div>
+            <div class="savings-card-sub">estimated year 1 output</div>
+        </div>
+        """, unsafe_allow_html=True)
+    with col2:
+        st.markdown(f"""
+        <div class="savings-card">
+            <div class="savings-card-label">% of Home Bill Covered</div>
+            <div class="savings-card-val">{bill_coverage_pct}%</div>
+            <div class="savings-card-sub">based on avg U.S. home usage</div>
+        </div>
+        """, unsafe_allow_html=True)
+
+    # ── Monthly / annual savings cards ───────────────────────────────────────
+    col3, col4 = st.columns(2)
+    with col3:
         st.markdown(f"""
         <div class="savings-card">
             <div class="savings-card-label">Monthly Savings (est.)</div>
@@ -224,7 +249,7 @@ def render_savings_section(system_kw, state_code, mohrfeld_cost, monthly_bill_ov
             <div class="savings-card-sub">offset on your electricity bill</div>
         </div>
         """, unsafe_allow_html=True)
-    with col2:
+    with col4:
         st.markdown(f"""
         <div class="savings-card">
             <div class="savings-card-label">Annual Savings (est.)</div>
@@ -233,6 +258,7 @@ def render_savings_section(system_kw, state_code, mohrfeld_cost, monthly_bill_ov
         </div>
         """, unsafe_allow_html=True)
 
+    # ── Payback bar ───────────────────────────────────────────────────────────
     pct = min(payback_yrs / 25 * 100, 100)
     payback_str = f"{payback_yrs:.1f} years" if payback_yrs < 25 else "25+ years"
     lifetime_str = f"${lifetime_savings:,.0f}" if lifetime_savings > 0 else "—"
@@ -251,11 +277,114 @@ def render_savings_section(system_kw, state_code, mohrfeld_cost, monthly_bill_ov
     </div>
     """, unsafe_allow_html=True)
 
+    # ── 25-year cumulative savings chart ──────────────────────────────────────
+    st.markdown('<div class="section-header">📈 25-Year Savings Projection</div>', unsafe_allow_html=True)
+
+    years = list(range(0, 26))
+    degradation = 0.005  # 0.5%/yr panel degradation
+    utility_inflation = 0.03  # 3%/yr electricity rate increase
+
+    cumulative = []
+    running = -net_cost  # start negative (what you paid after ITC)
+    for yr in years:
+        if yr == 0:
+            cumulative.append(round(running))
+        else:
+            yr_production = annual_kwh * ((1 - degradation) ** yr)
+            yr_rate = rate * ((1 + utility_inflation) ** yr)
+            yr_savings = yr_production * yr_rate
+            running += yr_savings
+            cumulative.append(round(running))
+
+    breakeven_yr = next((y for y, v in zip(years, cumulative) if v >= 0), None)
+
+    fig = go.Figure()
+
+    # Shaded loss zone (below zero)
+    loss_x = [y for y, v in zip(years, cumulative) if v <= 0]
+    loss_y = [v for v in cumulative if v <= 0]
+    if loss_x:
+        fig.add_trace(go.Scatter(
+            x=loss_x + loss_x[::-1],
+            y=loss_y + [0] * len(loss_y),
+            fill='toself',
+            fillcolor='rgba(231,76,60,0.12)',
+            line=dict(width=0),
+            showlegend=False,
+            hoverinfo='skip'
+        ))
+
+    # Shaded gain zone (above zero)
+    gain_x = [y for y, v in zip(years, cumulative) if v >= 0]
+    gain_y = [v for v in cumulative if v >= 0]
+    if gain_x:
+        fig.add_trace(go.Scatter(
+            x=gain_x + gain_x[::-1],
+            y=gain_y + [0] * len(gain_y),
+            fill='toself',
+            fillcolor='rgba(46,204,113,0.12)',
+            line=dict(width=0),
+            showlegend=False,
+            hoverinfo='skip'
+        ))
+
+    # Main cumulative savings line
+    fig.add_trace(go.Scatter(
+        x=years,
+        y=cumulative,
+        mode='lines',
+        name='Cumulative savings',
+        line=dict(color='#f5a623', width=3),
+        hovertemplate='Year %{x}<br><b>%{customdata}</b><extra></extra>',
+        customdata=[f"${v:,.0f}" if v >= 0 else f"-${abs(v):,.0f}" for v in cumulative]
+    ))
+
+    # Zero line
+    fig.add_hline(y=0, line_dash='dash', line_color='#444', line_width=1)
+
+    # Breakeven annotation
+    if breakeven_yr is not None:
+        fig.add_vline(x=breakeven_yr, line_dash='dot', line_color='#2ecc71', line_width=1.5)
+        fig.add_annotation(
+            x=breakeven_yr, y=max(cumulative) * 0.85,
+            text=f"Break-even<br>Year {breakeven_yr}",
+            showarrow=False,
+            font=dict(color='#2ecc71', size=12),
+            bgcolor='rgba(13,46,26,0.7)',
+            borderpad=6,
+        )
+
+    fig.update_layout(
+        paper_bgcolor='rgba(0,0,0,0)',
+        plot_bgcolor='#0f1117',
+        font=dict(family='DM Sans', color='#aaa', size=12),
+        margin=dict(l=10, r=10, t=10, b=10),
+        height=320,
+        xaxis=dict(
+            title='Year',
+            gridcolor='#1a1a2e',
+            tickmode='linear', dtick=5,
+            color='#666',
+        ),
+        yaxis=dict(
+            title='Cumulative $ savings',
+            gridcolor='#1a1a2e',
+            color='#666',
+            tickprefix='$',
+            tickformat=',.0f',
+        ),
+        showlegend=False,
+        hovermode='x unified',
+    )
+
+    st.plotly_chart(fig, use_container_width=True)
+
     st.markdown(f"""
     <div class="disclaimer">
-        Savings calculated using {state_name} avg utility rate ({rate*100:.1f}¢/kWh), {sun_hrs} peak sun hrs/day,
-        0.97 system efficiency, and 0.5%/yr panel degradation. Net cost reflects 30% federal ITC.
-        Actual savings vary based on net metering policy, roof orientation, shading, and local incentives.
+        Production estimates use {state_name} avg utility rate ({rate*100:.1f}¢/kWh), {sun_hrs} peak sun hrs/day,
+        0.97 system efficiency, 0.5%/yr panel degradation, and 3%/yr electricity rate inflation.
+        Net cost reflects 30% federal ITC. Bill coverage based on avg U.S. home usage of 10,500 kWh/yr.
+        Actual results vary based on net metering policy, roof orientation, shading, and local incentives.
     </div>
     """, unsafe_allow_html=True)
 
