@@ -15,79 +15,207 @@ st.set_page_config(
 
 st.markdown("""
 <style>
-    @import url('https://fonts.googleapis.com/css2?family=DM+Sans:wght@300;400;500;600&family=DM+Serif+Display&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Bebas+Neue&family=DM+Sans:wght@300;400;500&display=swap');
 
-    html, body, [class*="css"] { font-family: 'DM Sans', sans-serif; }
+    :root {
+        --black: #080808;
+        --white: #f2f0ed;
+        --gold: #c8963e;
+        --gold-bright: #f5a623;
+        --muted: #3a3a3a;
+        --mid: #888;
+        --border: #1c1c1c;
+        --green: #2ecc71;
+    }
 
+    html, body, [class*="css"] {
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 300;
+        background-color: var(--black) !important;
+        color: var(--white);
+    }
+
+    /* ── Hero ── */
+    .hero-eyebrow {
+        font-size: 0.65rem;
+        letter-spacing: 0.25em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 0.6rem;
+    }
     .hero-title {
-        font-family: 'DM Serif Display', serif;
-        font-size: 3rem;
-        background: linear-gradient(135deg, #f5a623, #f7c948, #fff5d6);
-        -webkit-background-clip: text;
-        -webkit-text-fill-color: transparent;
-        background-clip: text;
-        margin-bottom: 0.2rem;
-        line-height: 1.1;
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: clamp(3.5rem, 10vw, 6rem);
+        line-height: 0.9;
+        letter-spacing: 0.02em;
+        color: var(--white);
+        margin-bottom: 0.5rem;
     }
-    .hero-subtitle { color: #888; font-size: 1rem; font-weight: 300; margin-bottom: 2rem; }
+    .hero-subtitle {
+        color: var(--mid);
+        font-size: 0.9rem;
+        font-weight: 300;
+        line-height: 1.8;
+        max-width: 480px;
+        margin-bottom: 2.5rem;
+    }
+
+    /* ── Section headers ── */
+    .section-eyebrow {
+        font-size: 0.6rem;
+        letter-spacing: 0.2em;
+        text-transform: uppercase;
+        color: var(--gold);
+        margin-bottom: 0.4rem;
+    }
     .section-header {
-        font-family: 'DM Serif Display', serif;
-        font-size: 1.4rem;
-        color: #f5a623;
-        margin-top: 1.5rem;
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2rem;
+        letter-spacing: 0.04em;
+        color: var(--white);
+        margin-top: 0.2rem;
         margin-bottom: 1rem;
+        line-height: 1;
     }
-    .stat-row { display: flex; flex-direction: column; gap: 0.6rem; margin-bottom: 1rem; }
+
+    /* ── Dividers ── */
+    hr { border: none; border-top: 0.5px solid var(--border) !important; margin: 2rem 0 !important; }
+
+    /* ── Stat rows (roof analysis) ── */
+    .stat-row { display: flex; flex-direction: column; gap: 0; margin-bottom: 1rem; }
     .stat-line {
         display: flex; justify-content: space-between; align-items: center;
-        padding: 0.65rem 1rem; background: #1a1a2e;
-        border-radius: 8px; border-left: 3px solid #f5a623;
+        padding: 0.9rem 0;
+        border-top: 0.5px solid var(--border);
     }
-    .stat-label { color: #aaa; font-size: 0.9rem; font-weight: 400; }
-    .stat-value { color: #fff; font-size: 1rem; font-weight: 600; }
-    .valuation-box { background: #1a1a2e; border-radius: 12px; padding: 1.2rem 1.4rem; margin-bottom: 0.8rem; }
-    .valuation-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #888; margin-bottom: 0.3rem; }
-    .valuation-mohrfeld { font-family: 'DM Serif Display', serif; font-size: 2rem; color: #f5a623; }
-    .valuation-market { font-family: 'DM Serif Display', serif; font-size: 2rem; color: #ccc; }
-    .valuation-desc { font-size: 0.8rem; color: #666; margin-top: 0.2rem; }
+    .stat-line:last-child { border-bottom: 0.5px solid var(--border); }
+    .stat-label { color: #aaa; font-size: 0.88rem; font-weight: 300; letter-spacing: 0.03em; }
+    .stat-value { color: var(--white); font-size: 1rem; font-weight: 500; }
+
+    /* ── Valuation boxes ── */
+    .valuation-box {
+        background: #0e0e0e;
+        border: 0.5px solid var(--border);
+        padding: 1.4rem;
+        margin-bottom: 0.6rem;
+    }
+    .valuation-label {
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--mid);
+        margin-bottom: 0.5rem;
+    }
+    .valuation-mohrfeld {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2.8rem;
+        color: var(--gold-bright);
+        line-height: 1;
+    }
+    .valuation-market {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2.8rem;
+        color: #bbb;
+        line-height: 1;
+    }
+    .valuation-desc { font-size: 0.8rem; color: #777; margin-top: 0.4rem; font-weight: 300; }
     .savings-tag {
-        display: inline-block; background: #0d2e1a; color: #2ecc71;
-        border-radius: 20px; padding: 0.2rem 0.8rem;
-        font-size: 0.8rem; font-weight: 600; margin-top: 0.5rem;
+        display: inline-block;
+        background: transparent;
+        color: var(--green);
+        border: 0.5px solid var(--green);
+        padding: 0.2rem 0.7rem;
+        font-size: 0.65rem;
+        letter-spacing: 0.1em;
+        text-transform: uppercase;
+        margin-top: 0.6rem;
     }
+
+    /* ── Savings cards ── */
     .savings-card {
-        background: #0d2e1a; border-radius: 12px;
-        padding: 1.2rem 1.4rem; margin-bottom: 0.8rem;
-        border-left: 3px solid #2ecc71;
+        background: #0e0e0e;
+        border: 0.5px solid var(--border);
+        border-top: 1.5px solid var(--green);
+        padding: 1.4rem;
+        margin-bottom: 0.6rem;
     }
-    .savings-card-label { font-size: 0.75rem; text-transform: uppercase; letter-spacing: 0.08em; color: #2ecc71; margin-bottom: 0.3rem; }
-    .savings-card-val { font-family: 'DM Serif Display', serif; font-size: 2rem; color: #2ecc71; }
-    .savings-card-sub { font-size: 0.8rem; color: #5a8f6f; margin-top: 0.2rem; }
+    .savings-card-label {
+        font-size: 0.6rem;
+        text-transform: uppercase;
+        letter-spacing: 0.15em;
+        color: var(--green);
+        margin-bottom: 0.5rem;
+    }
+    .savings-card-val {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 2.8rem;
+        color: var(--green);
+        line-height: 1;
+    }
+    .savings-card-sub { font-size: 0.75rem; color: var(--muted); margin-top: 0.3rem; font-weight: 300; }
+
+    /* ── Payback ── */
     .payback-section { margin-top: 0.5rem; }
-    .payback-label { font-size: 0.8rem; color: #888; margin-bottom: 0.4rem; }
-    .payback-bar-bg { background: #1a1a2e; border-radius: 6px; height: 10px; width: 100%; overflow: hidden; margin-bottom: 0.3rem; }
-    .payback-bar-fill { height: 100%; border-radius: 6px; background: linear-gradient(90deg, #2ecc71, #f5a623); }
-    .payback-note { font-size: 0.75rem; color: #666; }
+    .payback-bar-bg {
+        background: var(--border);
+        height: 2px; width: 100%;
+        overflow: hidden; margin: 0.8rem 0 0.4rem;
+    }
+    .payback-bar-fill { height: 100%; background: linear-gradient(90deg, var(--green), var(--gold-bright)); }
+    .payback-note { font-size: 0.72rem; color: var(--mid); font-weight: 300; }
+
+    /* ── Coming soon ── */
     .coming-soon-box {
-        background: linear-gradient(135deg, #1a1a2e, #16213e);
-        border: 1px dashed #f5a623; border-radius: 12px;
-        padding: 2rem; text-align: center; margin-top: 1rem;
+        border: 0.5px dashed var(--border);
+        padding: 2.5rem; text-align: center; margin-top: 1rem;
     }
-    .coming-soon-box h3 { color: #f5a623; font-family: 'DM Serif Display', serif; font-size: 1.3rem; margin-bottom: 0.5rem; }
-    .coming-soon-box p { color: #888; font-size: 0.9rem; }
+    .coming-soon-box h3 {
+        font-family: 'Bebas Neue', sans-serif;
+        font-size: 1.6rem;
+        letter-spacing: 0.06em;
+        color: var(--gold);
+        margin-bottom: 0.6rem;
+    }
+    .coming-soon-box p { color: var(--mid); font-size: 0.85rem; font-weight: 300; line-height: 1.8; }
+
+    /* ── Button ── */
     .stButton > button {
-        background: linear-gradient(135deg, #f5a623, #f7c948);
-        color: #0f1117; font-weight: 600; font-family: 'DM Sans', sans-serif;
-        border: none; border-radius: 8px; padding: 0.6rem 2rem;
-        font-size: 1rem; width: 100%; transition: opacity 0.2s;
+        background: var(--white);
+        color: var(--black);
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 500;
+        font-size: 0.7rem;
+        letter-spacing: 0.15em;
+        text-transform: uppercase;
+        border: none;
+        border-radius: 0;
+        padding: 0.85rem 2rem;
+        width: 100%;
+        transition: background 0.2s, color 0.2s;
     }
-    .stButton > button:hover { opacity: 0.85; color: #0f1117; }
+    .stButton > button:hover {
+        background: var(--gold-bright);
+        color: var(--black);
+    }
+
+    /* ── Input ── */
     .stTextInput > div > div > input {
-        background: #1a1a2e; border: 1px solid #2a2a4e;
-        border-radius: 8px; color: #fff; font-family: 'DM Sans', sans-serif;
+        background: #0e0e0e;
+        border: 0.5px solid var(--border);
+        border-radius: 0;
+        color: var(--white);
+        font-family: 'DM Sans', sans-serif;
+        font-weight: 300;
+        padding: 0.8rem 1rem;
     }
-    hr { border-color: #2a2a4e !important; margin: 1.5rem 0 !important; }
-    .disclaimer { font-size: 0.75rem; color: #555; margin-top: 1rem; line-height: 1.6; }
+    .stTextInput > div > div > input:focus {
+        border-color: var(--gold);
+        box-shadow: none;
+    }
+
+    /* ── Misc ── */
+    .disclaimer { font-size: 0.7rem; color: var(--muted); margin-top: 1.2rem; line-height: 1.8; font-weight: 300; }
+    .stAlert { border-radius: 0 !important; }
 </style>
 """, unsafe_allow_html=True)
 
@@ -211,7 +339,8 @@ def render_savings_section(system_kw, state_code, mohrfeld_cost, monthly_bill_ov
     bill_coverage_pct = min(round(annual_kwh / avg_home_kwh * 100), 100)
 
     st.markdown("---")
-    st.markdown('<div class="section-header">💡 Energy Production & Savings</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-eyebrow">Production &amp; Savings</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">Energy Analysis</div>', unsafe_allow_html=True)
 
     st.markdown(f"""
     <div class="stat-line" style="margin-bottom:0.75rem;">
@@ -278,7 +407,8 @@ def render_savings_section(system_kw, state_code, mohrfeld_cost, monthly_bill_ov
     """, unsafe_allow_html=True)
 
     # ── 25-year cumulative savings chart ──────────────────────────────────────
-    st.markdown('<div class="section-header">📈 25-Year Savings Projection</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-eyebrow">Projection</div>', unsafe_allow_html=True)
+    st.markdown('<div class="section-header">25-Year Savings</div>', unsafe_allow_html=True)
 
     years = list(range(0, 26))
     degradation = 0.005  # 0.5%/yr panel degradation
@@ -356,20 +486,20 @@ def render_savings_section(system_kw, state_code, mohrfeld_cost, monthly_bill_ov
 
     fig.update_layout(
         paper_bgcolor='rgba(0,0,0,0)',
-        plot_bgcolor='#0f1117',
-        font=dict(family='DM Sans', color='#aaa', size=12),
+        plot_bgcolor='#080808',
+        font=dict(family='DM Sans', color='#888', size=11),
         margin=dict(l=10, r=10, t=10, b=10),
         height=320,
         xaxis=dict(
             title='Year',
-            gridcolor='#1a1a2e',
+            gridcolor='#1c1c1c',
             tickmode='linear', dtick=5,
-            color='#666',
+            color='#3a3a3a',
         ),
         yaxis=dict(
             title='Cumulative $ savings',
-            gridcolor='#1a1a2e',
-            color='#666',
+            gridcolor='#1c1c1c',
+            color='#3a3a3a',
             tickprefix='$',
             tickformat=',.0f',
         ),
@@ -390,13 +520,14 @@ def render_savings_section(system_kw, state_code, mohrfeld_cost, monthly_bill_ov
 
 
 # ─── Header ───────────────────────────────────────────────────────────────────
-st.markdown('<div class="hero-title">☀️ Solar Rooftop Estimator</div>', unsafe_allow_html=True)
-st.markdown('<div class="hero-subtitle">Enter any address to get an instant solar potential analysis, cost estimate, and savings projection.</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero-eyebrow">Mohrfeld Solar · Santa Cruz, CA</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero-title">Solar Rooftop Estimator</div>', unsafe_allow_html=True)
+st.markdown('<div class="hero-subtitle">Enter any address to get an instant solar potential analysis, cost estimate, and 25-year savings projection.</div>', unsafe_allow_html=True)
 
 address = st.text_input("", placeholder="e.g. 123 Main St, Santa Cruz, CA")
 
 if address:
-    if st.button("⚡ Estimate Solar Potential"):
+    if st.button("Estimate Solar Potential"):
 
         with st.spinner("Looking up address..."):
             lat, lon, display_name = get_coordinates(address)
@@ -432,7 +563,8 @@ if address:
                 usable_area = south_area_sqft if south_area_sqft else total_usable_sqft
 
                 st.markdown("---")
-                st.markdown('<div class="section-header">🛰️ Roof Analysis</div>', unsafe_allow_html=True)
+                st.markdown('<div class="section-eyebrow">Satellite Data</div>', unsafe_allow_html=True)
+                st.markdown('<div class="section-header">Roof Analysis</div>', unsafe_allow_html=True)
 
                 stats = []
                 if total_roof_sqft:
@@ -472,7 +604,8 @@ if address:
                 savings = market_cost - mohrfeld_cost
 
                 st.markdown("---")
-                st.markdown('<div class="section-header">💰 Cost Estimate</div>', unsafe_allow_html=True)
+                st.markdown('<div class="section-eyebrow">Pricing</div>', unsafe_allow_html=True)
+                st.markdown('<div class="section-header">Cost Estimate</div>', unsafe_allow_html=True)
                 st.markdown(
                     f'<div class="stat-line" style="margin-bottom:1rem;"><span class="stat-label">Estimated System Size</span><span class="stat-value">{system_kw:.1f} kW</span></div>',
                     unsafe_allow_html=True
@@ -506,8 +639,9 @@ if address:
             st.markdown("---")
             st.markdown("""
             <div class="coming-soon-box">
-                <h3>🗺️ Solar Flux Heatmap — Coming Soon</h3>
+                <h3>Solar Flux Heatmap</h3>
                 <p>A roof-level heatmap showing sun exposure across every part of your roof,<br>
                 so you can see exactly where panels will perform best.</p>
+                <div style="font-size:0.6rem;letter-spacing:0.2em;text-transform:uppercase;color:#3a3a3a;margin-top:1rem;">Coming Soon</div>
             </div>
             """, unsafe_allow_html=True)
